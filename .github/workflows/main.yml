@@ -1,0 +1,38 @@
+name: Build Java Launcher DLL
+
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: # Allows you to run it manually
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Set up MinGW
+        uses: egor-tensin/setup-mingw@v3
+        with:
+          platform: x64
+
+      - name: Compile DLL
+        run: |
+          g++ -shared -o launch.dll launcher.cpp `
+          -I"${{ env.JAVA_HOME }}\include" `
+          -I"${{ env.JAVA_HOME }}\include\win32" `
+          -static-libgcc -static-libstdc++
+
+      - name: Upload Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: java-launcher-dll
+          path: launch.dll
